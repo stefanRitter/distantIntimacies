@@ -5,17 +5,6 @@
  *
  */
 
-
-// global Hammer.js touch events
-var gEvents = [ "tap", "hold",
-                "doubletap",
-                "dragup", "dragdown", "dragleft", "dragright",
-                "swipe", "swipeup", "swipedown", "swipeleft", "swiperight",
-                "rotate",
-                "pinchin", "pinchout"
-              ];
-
-
 (function() {
   jQuery(function($) {
     
@@ -68,13 +57,20 @@ var gEvents = [ "tap", "hold",
     resize();
     
 
-    // touch event handlers
+    // event handlers
     function initEvent(e) {
       e.preventDefault(); e.stopPropagation();
-      //console.log(e.type);
+      console.log(e.type);
     }
-    
-    $canvas.hammer().bind('touchmove' , function(e) {
+
+    var el = document.getElementsByTagName("canvas")[0];
+    el.addEventListener("touchstart", initEvent, false);
+    el.addEventListener("touchend", initEvent, false);
+    el.addEventListener("touchcancel", initEvent, false);
+    el.addEventListener("touchleave", initEvent, false);
+    el.addEventListener("touchmove", initEvent, false);
+
+    $canvas.on('touchmove' , function(e) {
       initEvent(e);
       for(var i = 0; i < e.originalEvent.touches.length; i++) {
         var object = new Circle();
@@ -89,28 +85,6 @@ var gEvents = [ "tap", "hold",
         objects.push(object);
       }
     });
-
-    /*
-    $canvas.hammer().on('doubletap' , function(e) {
-      initEvent(e);
-    });
-
-    $canvas.on('dragup' , function(e) {
-      initEvent(e);
-    });
-
-    $canvas.hammer().on('swipe' , function(e) {
-      initEvent(e);
-    });
-
-    $canvas.hammer().on('pinchin' , function(e) {
-      initEvent(e);
-    });
-
-    $canvas.on('rotate' , function(e) {
-      initEvent(e);
-    });
-    */
 
     // render all objects to canvas at max FPS
     function render() {
