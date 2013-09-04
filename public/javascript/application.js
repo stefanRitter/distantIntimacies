@@ -70,7 +70,7 @@ var gEvents = [ "tap", "hold",
 
     // touch event handlers
     function initEvent(e) {
-      //e.preventDefault(); e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       //console.log(e.type);
     }
     
@@ -90,6 +90,7 @@ var gEvents = [ "tap", "hold",
       }
     });
 
+    /*
     $canvas.hammer().on('doubletap' , function(e) {
       initEvent(e);
     });
@@ -109,7 +110,7 @@ var gEvents = [ "tap", "hold",
     $canvas.on('rotate' , function(e) {
       initEvent(e);
     });
-
+    */
 
     // render all objects to canvas at max FPS
     function render() {
