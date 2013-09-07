@@ -12,8 +12,10 @@
         $canvasFront = $('#frontCanvas'),
         context = canvas.getContext('2d'),
         objects = [],
+        deadObjects = [],
         backgroundSound = document.getElementById("backgroundSound"),
         backgroundMovement = document.getElementById("backgroundMovement"),
+        touchSound = document.getElementById("touchSound"),
         startTime = Date.now(),
         deltaTime = 0.0;
 
@@ -25,12 +27,35 @@
       bothCanvi[0].height = bothCanvi[1].height = $(window).height();
     }
     $(window).resize(resize);
-    backgroundSound.volume = 0;//0.05;
+    window.gContext = document.getElementsByTagName('canvas')[1].getContext('2d');
+    loadAssets(['sprite.png', 'sprite.json'], function(){
+      setupSprites();
+    });
+    touchSound.volume = 0.0;
+    backgroundSound.volume = 0.0;
     backgroundMovement.playbackRate = 0.6;
     resize();
 
 
     // helper functions
+    function setupSprites() {
+      var sprite = new SpriteSheetClass();
+      sprite.setAsset('sprite.png', gCachedAssets['sprite.png']);
+      sprite.parseAtlasDefinition(gCachedAssets['sprite.json']);
+    }
+    function spawnEntity(typename) {
+      var ent = new (window.factory[typename])();
+      objects.push(ent);
+      return ent;
+    }
+
+    function createDynamicEntity(x, y, id) {
+      var touchId = id || 0;
+      var entity = spawnEntity('AnimatedEntity');
+      entity.create(x, y, 139, 120, ['enemydynamic01.png', 'enemydynamic02.png', 'enemydynamic03.png', 'enemydynamic04.png',
+        'enemydynamic05.png', 'enemydynamic06.png', 'enemydynamic07.png'], 500, touchId, true);
+    }
+
     function randomNum(max) {
       return Math.floor((Math.random()*max)+1);
     }
@@ -70,7 +95,7 @@
       update: function(deltaTime) {
         if (this.touchState > 0) {
           this.stateTime += deltaTime;
-          this.val = this.stateTime/120000;
+          this.val = this.stateTime/100000;
 
           if (this.touchState == 1) {
             if (backgroundMovement.playbackRate + this.val > 2) {
@@ -88,6 +113,11 @@
             } else {
               backgroundSound.volume += this.val;
             }
+            if (touchSound.volume + this.val >= 1) {
+              touchSound.volume = 1;
+            } else {
+              touchSound.volume += this.val;
+            }
           } else {
             if (backgroundMovement.playbackRate - this.val < 0.2) {
               backgroundMovement.playbackRate = 0.2;
@@ -96,7 +126,6 @@
             }
             if (backgroundSound.playbackRate - this.val < 1) {
               backgroundSound.playbackRate = 1;
-              this.touchState = 0;
             } else {
               backgroundSound.playbackRate -= this.val;
             }
@@ -104,6 +133,12 @@
               backgroundSound.volume = 0.3;
             } else {
               backgroundSound.volume -= this.val;
+            }
+            if (touchSound.playbackRate - this.val <= 0) {
+              touchSound.playbackRate = 0;
+              this.touchState = 0;
+            } else {
+              touchSound.playbackRate -= this.val;
             }
           }
         }
@@ -169,24 +204,6 @@
       }
     };
     
-    function Circle() {
-      this.x = 0;
-      this.y = 0;
-      this.size = 25;
-      this.color = 0.0;
-      this.life = 200;
-      this.render = function() {
-        if (this.life >= 0) {
-          context.fillStyle = this.color + this.life/400.0 + ")";
-          context.beginPath();
-          context.arc(this.x, this.y, this.size, 0, Math.PI*2, true);
-          context.closePath();
-          context.fill();
-          this.life--;
-        }
-      };
-    }
-    
 
     // event handlers
     function initEvent(e) {
@@ -195,8 +212,9 @@
     }
     $(document).on('touchstart touch touchend touchmove', initEvent);
 
-    $canvasFront.on('touchstart' , function(e) {
+    $canvasFront.on('click touchstart' , function(e) {
       touchManager.initiateTouch(e);
+      createDynamicEntity(e.clientX, e.clientY);
     });
     
     $canvasFront.on('touchend' , function(e) {
@@ -218,23 +236,30 @@
 
 
     // main loops
-    function loopThroughObjects() {
+    function loopThroughObjects(deltaTime) {
       for (var i = 0; i < objects.length; i++) {
-        objects[i].render();
+        if(!objects[i]._killed) {
+          objects[i].update(deltaTime);
+          objects[i].draw();
+        } else {
+          deadObjects.push(objects[i]);
+        }
       }
-      if (objects[0] && objects[0].life <= 0) {
-        objects.shift();
+      for (var j = 0; j < objects.length; j++) {
+        objects.erase(deadObjects[j]);
       }
+      deadObjects = [];
     }
 
     function render() {
       context.clearRect(0,0,canvas.width,canvas.height);
+      gContext.clearRect(0,0,canvas.width,canvas.height);
       
       deltaTime = Date.now() - startTime;
       startTime = Date.now();
 
       touchManager.update(deltaTime);
-      loopThroughObjects();
+      loopThroughObjects(deltaTime);
       backgroundTemperament.update(deltaTime);
 
       window.requestAnimationFrame(render);

@@ -14,7 +14,7 @@
   </head>
   <body style="margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: black;">
     
-    <video width="100%" height="auto" autoplay loop style="position: fixed; top: 0; left: 0; z-index: 3; opacity: 0.8;" id="backgroundMovement">
+    <video width="100%" height="auto" autoplay loop style="position: fixed; top: 0; left: 0; z-index: 3; opacity: 0.7;" id="backgroundMovement">
       <source src="/background.mp4" type="video/mp4">
     </video>
     
@@ -25,8 +25,16 @@
     <audio autoplay loop id="backgroundSound">
       <source src="/aYHB6lwzujc.mp3" type="audio/mpeg">
     </audio>
+    <audio autoplay loop id="touchSound">
+      <source src="/277705_ge.mp3" type="audio/mpeg">
+    </audio>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="./javascript/libs/jquery.min.js"></script>
+    <script src="./javascript/Core.js" ></script>
+    <script src="./javascript/Spritesheet.js" ></script>
+    <script src="./javascript/AssetManager.js" ></script>
+    <script src="./javascript/Entity.js" ></script>
+    <script src="./javascript/AnimatedEntity.js" ></script>
     <script src="./javascript/application.js" ></script>
   </body>
 </html>
