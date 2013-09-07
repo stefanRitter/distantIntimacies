@@ -7,12 +7,81 @@
 
 (function() {
   jQuery(function($) {
-    
     var canvas = document.getElementsByTagName('canvas')[0],
         $canvas = $('canvas'),
         context = canvas.getContext('2d'),
-        objects = [];
+        objects = [],
+        backgroundSound = document.getElementById("backgroundSound"),
+        startTime = Date.now(),
+        deltaTime = 0.0;
+    
+
+    function randomNum(max) {
+      return Math.floor((Math.random()*max)+1);
+    }
+
+    function randomColor() {
+      var r = Math.floor((Math.random()*255)+1),
+          g = Math.floor((Math.random()*50)+1),
+          b = Math.floor((Math.random()*100)+1);
+      return "rgba(" + r + "," + g + "," + b + ",";
+    }
+
+    function randomSize() {
+      return Math.floor((Math.random()*100)+1);
+    }
+
+
+
+    var backgroundTemperament = {
+      stateTime: 0,
+      reactTime: 0,
+      gradient: null,
+      alpha: 1.0,
+      duration: 0.0,
+      
+      update: function (deltaTime) {
+        this.stateTime += deltaTime;
         
+        if (this.stateTime >= this.reactTime) {
+          this.newTemperament();
+          this.stateTime = 0.0;
+        } else if (this.stateTime < this.duration*2) {
+          this.updateTemperament();
+        }
+      },
+      
+      newTemperament: function () {
+        this.duration = randomNum(10000);
+        this.reactTime = this.duration*2 + randomNum(4000);
+        this.gradient = context.createRadialGradient(
+              randomNum(canvas.width),randomNum(canvas.height), 15,
+              randomNum(canvas.width),randomNum(canvas.height), canvas.width);
+        this.gradient.addColorStop(0, randomColor()+'0.3)');
+        this.gradient.addColorStop(0.8, randomColor()+'0.5)');
+        this.gradient.addColorStop(1, 'rgba(0,201,255,0)');
+        this.alpha = 0.0;
+      },
+      
+      updateTemperament: function () {
+        if (this.stateTime < this.duration) {
+          // increase alpha
+          this.alpha = this.stateTime/this.duration;
+        } else {
+          // decrease alpha
+          this.alpha = this.duration/this.stateTime;
+        }
+
+        // Fill canvas with temperament
+        context.fillStyle = this.gradient;
+        context.globalAlpha = this.alpha;
+        context.globalCompositeOperation = 'darker';
+        context.fillRect(0,0,canvas.width,canvas.height);
+        context.globalAlpha = 1.0;
+        context.globalCompositeOperation = 'source-over';
+      }
+    };
+    
     function Circle() {
       this.x = 0;
       this.y = 0;
@@ -34,18 +103,6 @@
         }
       };
     }
-    
-
-    function randomColor() {
-      var r = Math.floor((Math.random()*255)+1),
-          g = Math.floor((Math.random()*50)+1),
-          b = Math.floor((Math.random()*100)+1);
-      return "rgba(" + r + "," + g + "," + b + ",";
-    }
-
-    function randomSize() {
-      return Math.floor((Math.random()*100)+1);
-    }
 
 
     // setup canvas
@@ -54,6 +111,7 @@
       canvas.height = $(window).height();
     }
     $(window).resize(resize);
+    backgroundSound.volume = 0.05;
     resize();
     
 
@@ -86,15 +144,26 @@
       }
     });
 
-    // render all objects to canvas at max FPS
-    function render() {
-      context.clearRect(0,0,canvas.width,canvas.height);
+    function loopThroughObjects() {
       for (var i = 0; i < objects.length; i++) {
         objects[i].render();
       }
       if (objects[0] && objects[0].life <= 0) {
         objects.shift();
       }
+    }
+
+
+    // render all objects to canvas at max FPS
+    function render() {
+      context.clearRect(0,0,canvas.width,canvas.height);
+      
+      deltaTime = Date.now() - startTime;
+      startTime = Date.now();
+
+      backgroundTemperament.update(deltaTime);
+      loopThroughObjects();
+      
       window.requestAnimationFrame(render);
     }
     window.requestAnimationFrame(render);
