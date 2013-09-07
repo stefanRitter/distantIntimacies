@@ -20,6 +20,11 @@
       return Math.floor((Math.random()*max)+1);
     }
 
+    function randomRange(from,to)
+    {
+      return Math.floor(Math.random()*(to-from+1)+from);
+    }
+
     function randomColor() {
       var r = Math.floor((Math.random()*255)+1),
           g = Math.floor((Math.random()*50)+1),
@@ -52,14 +57,11 @@
       },
       
       newTemperament: function () {
-        this.duration = randomNum(10000);
+        this.duration = randomRange(10000, 20000);
         this.reactTime = this.duration*2 + randomNum(4000);
-        this.gradient = context.createRadialGradient(
-              randomNum(canvas.width),randomNum(canvas.height), 15,
-              randomNum(canvas.width),randomNum(canvas.height), canvas.width);
-        this.gradient.addColorStop(0, randomColor()+'0.3)');
-        this.gradient.addColorStop(0.8, randomColor()+'0.5)');
-        this.gradient.addColorStop(1, 'rgba(0,201,255,0)');
+        this.gradient = context.createLinearGradient(0,0,canvas.width,canvas.height);
+        this.gradient.addColorStop(0, randomColor()+'0.2)');
+        this.gradient.addColorStop(1, randomColor()+'0.6)');
         this.alpha = 0.0;
       },
       
@@ -71,7 +73,7 @@
           // decrease alpha
           this.alpha = (this.duration-(this.stateTime-this.duration))/this.duration;
         }
-        backgroundSound.volume = this.alpha*0.5;
+        backgroundSound.volume = this.alpha*0.8;
 
         // Fill canvas with temperament
         context.fillStyle = this.gradient;
@@ -122,12 +124,12 @@
       console.log(e.type);
     }
 
-    var el = document.getElementsByTagName("canvas")[0];
+    /*var el = document.getElementsByTagName("canvas")[0];
     el.addEventListener("touchstart", initEvent, false);
     el.addEventListener("touchend", initEvent, false);
     el.addEventListener("touchcancel", initEvent, false);
     el.addEventListener("touchleave", initEvent, false);
-    el.addEventListener("touchmove", initEvent, false);
+    el.addEventListener("touchmove", initEvent, false);*/
 
     $canvas.on('touchmove' , function(e) {
       initEvent(e);
