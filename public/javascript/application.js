@@ -55,10 +55,19 @@
     }
 
     function createDynamicEntity(x, y, id) {
-      var touchId = id || 0;
-      var entity = spawnEntity('AnimatedEntity', id);
-      entity.create(x, y, 139, 120, ['enemydynamic01.png', 'enemydynamic02.png', 'enemydynamic03.png', 'enemydynamic04.png',
-        'enemydynamic05.png', 'enemydynamic06.png', 'enemydynamic07.png'], 500, touchId, true);
+      var touchId = id || 0,
+          entity = spawnEntity('AnimatedEntity', id),
+          frames = [],
+          scale = randomRange(2,4);
+
+      for(var h = 0; h < 5; h++) {
+        for(var z = 0; z < 10; z++) {
+          for(var e = 0; e < 10; e++) {
+            frames.push('blob01black_00'+h+z+e+'.tga');
+          }
+        }
+      }
+      entity.create(x, y, 238*scale, 190*scale, frames, 17000, touchId, true, randomRange(150, 1000));
     }
 
     function destroyDynamicEntity(id) {
@@ -199,8 +208,8 @@
         this.duration = randomRange(10000, 20000);
         this.reactTime = this.duration*2 + randomNum(4000);
         this.gradient = context.createLinearGradient(0,0,canvas.width,canvas.height);
-        this.gradient.addColorStop(0, randomColor()+'0.2)');
-        this.gradient.addColorStop(1, randomColor()+'0.6)');
+        this.gradient.addColorStop(0, randomColor()+'0.3)');
+        this.gradient.addColorStop(1, randomColor()+'0.7)');
         this.alpha = 0.0;
       },
       
@@ -236,6 +245,10 @@
     }
     $(document).on('click touchstart touch touchend touchmove', initEvent);
 
+    $canvasFront.on('click' , function(e) {
+      createDynamicEntity(e.clientX, e.clientY);
+    });
+    
     $canvasFront.on('touchstart' , function(e) {
       e.preventDefault();
       var touchList = e.originalEvent.changedTouches;

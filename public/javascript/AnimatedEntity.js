@@ -20,8 +20,9 @@ var AnimatedEntity = EntityClass.extend({
   id: 0,
   alpha: 0,
   killing: false,
+  life: 0,
 
-  create: function(x, y, w, h, images, animLength, id, looping) {
+  create: function(x, y, w, h, images, animLength, id, looping, life) {
     this.parent(x, y, w, h, null);
 
     this.assets = images;
@@ -29,6 +30,7 @@ var AnimatedEntity = EntityClass.extend({
     this.frameLength = animLength / this.numFrames;
     this.loop = looping || false;
     this.id = id;
+    this.life = life;
   },
 
   update: function(deltaTime) {
@@ -47,6 +49,11 @@ var AnimatedEntity = EntityClass.extend({
           this._killed = true;
         }
       }
+      
+      this.life -= 1;
+      if (this.life <= 0) {
+        this.killing = true;
+      }
     }
 
     if (this.stateTime > 1000/60) {
@@ -57,11 +64,11 @@ var AnimatedEntity = EntityClass.extend({
           this.kill();
         }
       } else {
-        if (this.alpha < 1) {
-          this.alpha += 1/60;   
+        if (this.alpha < 0.8) {
+          this.alpha += 1/60;
         }
-        if (this.alpha > 1) {
-          this.alpha = 1.0;
+        if (this.alpha > 0.8) {
+          this.alpha = 0.8;
         }
       }
     }
