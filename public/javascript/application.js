@@ -6,7 +6,7 @@
  */
 
 (function() {
-  jQuery(function($) {
+  jQuery( function($) {
     var canvas = document.getElementsByTagName('canvas')[0],
         $canvas = $('canvas'),
         context = canvas.getContext('2d'),
@@ -37,6 +37,33 @@
       return Math.floor((Math.random()*100)+1);
     }
 
+
+    var touchManager = {
+      touch: false,
+      touchState: 0,
+      stateTime: 0.0,
+
+      initiateTouch: function(e) {
+        this.touchState = 1;
+      },
+
+      update: function(deltaTime) {
+        if (this.touchState) {
+          if (this.touchState == 1) {
+            backgroundSound.volume = 1;
+            backgroundSound.playbackRate = 4;
+            backgroundMovement.playbackRate = 2;
+          } else {
+            backgroundSound.playbackRate = 1;
+            touchState = 0;
+          }
+        }
+      },
+
+      endTouch: function() {
+        touchState = 2;
+      }
+    };
 
 
     var backgroundTemperament = {
@@ -75,8 +102,10 @@
           this.alpha = (this.duration-(this.stateTime-this.duration))/this.duration;
         }
         
-        backgroundSound.volume = this.alpha*0.8;
-        backgroundMovement.playbackRate = this.alpha+0.15;
+        if (!touchManager.touchState) {
+          backgroundSound.volume = this.alpha*0.8;
+          backgroundMovement.playbackRate = this.alpha+0.15;
+        }
 
         // Fill canvas with temperament
         context.fillStyle = this.gradient;
@@ -128,14 +157,17 @@
       console.log(e.type);
     }
 
-    /*var el = document.getElementsByTagName("canvas")[0];
-    el.addEventListener("touchstart", initEvent, false);
-    el.addEventListener("touchend", initEvent, false);
-    el.addEventListener("touchcancel", initEvent, false);
-    el.addEventListener("touchleave", initEvent, false);
-    el.addEventListener("touchmove", initEvent, false);*/
-
-    $canvas.on('touchmove' , function(e) {
+    $canvas.on('click touchstart' , function(e) {
+      touchManager.initiateTouch(e);
+    });
+    
+    $canvas.on('click touchend' , function(e) {
+      touchManager.endTouch();
+    });
+    
+    /*$canvas.on('click touch' , function(e) {
+      backgroundSound.volume = 1;
+      backgroundSound.playbackRate = 4;
       initEvent(e);
       for(var i = 0; i < e.originalEvent.touches.length; i++) {
         var object = new Circle();
@@ -149,7 +181,7 @@
         object.size = randomSize();
         objects.push(object);
       }
-    });
+    });*/
 
     function loopThroughObjects() {
       for (var i = 0; i < objects.length; i++) {
@@ -169,7 +201,7 @@
       startTime = Date.now();
 
       backgroundTemperament.update(deltaTime);
-      loopThroughObjects();
+      touchManager.update(deltaTime);
       
       window.requestAnimationFrame(render);
     }
