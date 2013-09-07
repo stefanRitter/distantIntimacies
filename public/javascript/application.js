@@ -12,6 +12,7 @@
         context = canvas.getContext('2d'),
         objects = [],
         backgroundSound = document.getElementById("backgroundSound"),
+        backgroundMovement = document.getElementById("backgroundMovement"),
         startTime = Date.now(),
         deltaTime = 0.0;
     
@@ -73,7 +74,9 @@
           // decrease alpha
           this.alpha = (this.duration-(this.stateTime-this.duration))/this.duration;
         }
+        
         backgroundSound.volume = this.alpha*0.8;
+        backgroundMovement.playbackRate = this.alpha+0.15;
 
         // Fill canvas with temperament
         context.fillStyle = this.gradient;
@@ -115,6 +118,7 @@
     }
     $(window).resize(resize);
     backgroundSound.volume = 0;//0.05;
+    backgroundMovement.playbackRate = 0.6;
     resize();
     
 
