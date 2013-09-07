@@ -9,6 +9,7 @@
   jQuery( function($) {
     var canvas = document.getElementsByTagName('canvas')[0],
         $canvas = $('#backCanvas'),
+        $canvasFront = $('#frontCanvas'),
         context = canvas.getContext('2d'),
         objects = [],
         backgroundSound = document.getElementById("backgroundSound"),
@@ -67,38 +68,42 @@
       },
 
       update: function(deltaTime) {
-        if (this.touchState) {
+        if (this.touchState > 0) {
           this.stateTime += deltaTime;
-          this.val = this.stateTime/2000;
+          this.val = this.stateTime/120000;
 
           if (this.touchState == 1) {
-            backgroundSound.volume += this.val;
-            backgroundSound.playbackRate += this.val;
-            backgroundMovement.playbackRate += this.val;
-
-            if (backgroundMovement.playbackRate > 2) {
+            if (backgroundMovement.playbackRate + this.val > 2) {
               backgroundMovement.playbackRate = 2;
+            } else {
+              backgroundMovement.playbackRate += this.val;
             }
-            if (backgroundSound.playbackRate > 4) {
+            if (backgroundSound.playbackRate + this.val > 4) {
               backgroundSound.playbackRate = 4;
+            } else {
+              backgroundSound.playbackRate += this.val;
             }
-            if (backgroundSound.volume > 1) {
+            if (backgroundSound.volume + this.val > 1) {
               backgroundSound.volume = 1;
+            } else {
+              backgroundSound.volume += this.val;
             }
           } else {
-            backgroundSound.volume -= this.val;
-            backgroundSound.playbackRate -= this.val;
-            backgroundMovement.playbackRate -= this.val;
-
-            if (backgroundMovement.playbackRate < 0.2) {
+            if (backgroundMovement.playbackRate - this.val < 0.2) {
               backgroundMovement.playbackRate = 0.2;
+            } else {
+              backgroundMovement.playbackRate -= this.val;
             }
-            if (backgroundSound.playbackRate < 1) {
+            if (backgroundSound.playbackRate - this.val < 1) {
               backgroundSound.playbackRate = 1;
               this.touchState = 0;
+            } else {
+              backgroundSound.playbackRate -= this.val;
             }
-            if (backgroundSound.volume < 0.3) {
+            if (backgroundSound.volume - this.val < 0.3) {
               backgroundSound.volume = 0.3;
+            } else {
+              backgroundSound.volume -= this.val;
             }
           }
         }
@@ -135,8 +140,8 @@
         this.duration = randomRange(10000, 20000);
         this.reactTime = this.duration*2 + randomNum(4000);
         this.gradient = context.createLinearGradient(0,0,canvas.width,canvas.height);
-        this.gradient.addColorStop(0, randomColor()+'0.4)');
-        this.gradient.addColorStop(1, randomColor()+'0.8)');
+        this.gradient.addColorStop(0, randomColor()+'0.2)');
+        this.gradient.addColorStop(1, randomColor()+'0.6)');
         this.alpha = 0.0;
       },
       
@@ -149,8 +154,8 @@
           this.alpha = (this.duration-(this.stateTime-this.duration))/this.duration;
         }
         
-        if (!touchManager.touchState) {
-          backgroundSound.volume = this.alpha*0.8;
+        if (!touchManager.touchState && this.stateTime >= 1000/60) {
+          backgroundSound.volume = this.alpha;
           backgroundMovement.playbackRate = this.alpha+0.15;
         }
 
@@ -186,19 +191,19 @@
     // event handlers
     function initEvent(e) {
       e.preventDefault(); e.stopPropagation();
-      console.log(e.type);
+      //console.log(e.type);
     }
     $(document).on('touchstart touch touchend touchmove', initEvent);
 
-    $canvas.on('touchstart' , function(e) {
+    $canvasFront.on('touchstart' , function(e) {
       touchManager.initiateTouch(e);
     });
     
-    $canvas.on('touchend' , function(e) {
+    $canvasFront.on('touchend' , function(e) {
       touchManager.endTouch();
     });
     
-    $canvas.on('touchmove' , function(e) {
+    /*$canvas.on('touchmove' , function(e) {
       initEvent(e);
       for(var i = 0; i < e.originalEvent.touches.length; i++) {
         var object = new Circle();
@@ -208,7 +213,7 @@
         object.size = randomSize();
         objects.push(object);
       }
-    });
+    });*/
 
 
 
@@ -233,7 +238,6 @@
       backgroundTemperament.update(deltaTime);
 
       window.requestAnimationFrame(render);
-      console.log(backgroundMovement.playbackRate);
     }
     window.requestAnimationFrame(render);
   });
