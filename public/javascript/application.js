@@ -8,7 +8,7 @@
 (function() {
   jQuery( function($) {
     var canvas = document.getElementsByTagName('canvas')[0],
-        $canvas = $('canvas'),
+        $canvas = $('#backCanvas'),
         context = canvas.getContext('2d'),
         objects = [],
         backgroundSound = document.getElementById("backgroundSound"),
@@ -19,8 +19,9 @@
 
     // setup canvas
     function resize() {
-      canvas.width = $(window).width();
-      canvas.height = $(window).height();
+      var bothCanvi = document.getElementsByTagName('canvas');
+      bothCanvi[0].width = bothCanvi[1].width = $(window).width();
+      bothCanvi[0].height = bothCanvi[1].height = $(window).height();
     }
     $(window).resize(resize);
     backgroundSound.volume = 0;//0.05;
@@ -56,29 +57,57 @@
       touchState: 0,
       stateTime: 0.0,
       touches: [],
+      val: 0.0,
 
       initiateTouch: function(e) {
-        if (this.touchState == 0) {
+        if (this.touchState === 0) {
           this.touchState = 1;
+          this.stateTime = 0.0;
         }
       },
 
       update: function(deltaTime) {
         if (this.touchState) {
+          this.stateTime += deltaTime;
+          this.val = this.stateTime/2000;
+
           if (this.touchState == 1) {
-            backgroundSound.volume = 1;
-            backgroundSound.playbackRate = 4;
-            backgroundMovement.playbackRate = 2;
+            backgroundSound.volume += this.val;
+            backgroundSound.playbackRate += this.val;
+            backgroundMovement.playbackRate += this.val;
+
+            if (backgroundMovement.playbackRate > 2) {
+              backgroundMovement.playbackRate = 2;
+            }
+            if (backgroundSound.playbackRate > 4) {
+              backgroundSound.playbackRate = 4;
+            }
+            if (backgroundSound.volume > 1) {
+              backgroundSound.volume = 1;
+            }
           } else {
-            backgroundSound.playbackRate = 1;
-            this.touchState = 0;
+            backgroundSound.volume -= this.val;
+            backgroundSound.playbackRate -= this.val;
+            backgroundMovement.playbackRate -= this.val;
+
+            if (backgroundMovement.playbackRate < 0.2) {
+              backgroundMovement.playbackRate = 0.2;
+            }
+            if (backgroundSound.playbackRate < 1) {
+              backgroundSound.playbackRate = 1;
+              this.touchState = 0;
+            }
+            if (backgroundSound.volume < 0.3) {
+              backgroundSound.volume = 0.3;
+            }
           }
         }
       },
 
       endTouch: function() {
-        if ( this.touches.length == 0) {
+        if ( this.touches.length === 0) {
           this.touchState = 2;
+          this.stateTime = 0.0;
         }
       }
     };
@@ -106,8 +135,8 @@
         this.duration = randomRange(10000, 20000);
         this.reactTime = this.duration*2 + randomNum(4000);
         this.gradient = context.createLinearGradient(0,0,canvas.width,canvas.height);
-        this.gradient.addColorStop(0, randomColor()+'0.2)');
-        this.gradient.addColorStop(1, randomColor()+'0.6)');
+        this.gradient.addColorStop(0, randomColor()+'0.4)');
+        this.gradient.addColorStop(1, randomColor()+'0.8)');
         this.alpha = 0.0;
       },
       
@@ -204,6 +233,7 @@
       backgroundTemperament.update(deltaTime);
 
       window.requestAnimationFrame(render);
+      console.log(backgroundMovement.playbackRate);
     }
     window.requestAnimationFrame(render);
   });
