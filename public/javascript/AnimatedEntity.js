@@ -18,6 +18,8 @@ var AnimatedEntity = EntityClass.extend({
   loop: false,
   direction: 1,
   id: 0,
+  alpha: 0,
+  killing: false,
 
   create: function(x, y, w, h, images, animLength, id, looping) {
     this.parent(x, y, w, h, null);
@@ -46,11 +48,38 @@ var AnimatedEntity = EntityClass.extend({
         }
       }
     }
+
+    if (this.stateTime > 1000/60) {
+      if (this.killing) {
+        this.alpha -= 1/60;
+        if (this.alpha <= 0) {
+          this.alpha = 0.0;
+          this.kill();
+        }
+      } else {
+        if (this.alpha < 1) {
+          this.alpha += 1/60;   
+        }
+        if (this.alpha > 1) {
+          this.alpha = 1.0;
+        }
+      }
+    }
   },
 
   draw: function() {
     this.setSprite(this.assets[this.currentFrame]);
+    gContext.globalAlpha = this.alpha;
     this.parent();
+    gContext.globalAlpha = 1.0;
+  },
+
+  destroy: function() {
+    this.killing = true;
+  },
+
+  move: function(x,y) {
+    this.position(x,y);
   }
 });
 

@@ -43,7 +43,12 @@
       sprite.setAsset('sprite.png', gCachedAssets['sprite.png']);
       sprite.parseAtlasDefinition(gCachedAssets['sprite.json']);
     }
-    function spawnEntity(typename) {
+    function spawnEntity(typename, id) {
+      for (var i = 0; i < objects.length; i++) {
+        if(objects[i].id === id) {
+          objects[i].id = 20;
+        }
+      }
       var ent = new (window.factory[typename])();
       objects.push(ent);
       return ent;
@@ -51,9 +56,25 @@
 
     function createDynamicEntity(x, y, id) {
       var touchId = id || 0;
-      var entity = spawnEntity('AnimatedEntity');
+      var entity = spawnEntity('AnimatedEntity', id);
       entity.create(x, y, 139, 120, ['enemydynamic01.png', 'enemydynamic02.png', 'enemydynamic03.png', 'enemydynamic04.png',
         'enemydynamic05.png', 'enemydynamic06.png', 'enemydynamic07.png'], 500, touchId, true);
+    }
+
+    function destroyDynamicEntity(id) {
+      for (var i = 0; i < objects.length; i++) {
+        if(objects[i].id === id) {
+          objects[i].destroy();
+        }
+      }
+    }
+
+    function moveDynamicEntity(x, y, id) {
+      for (var i = 0; i < objects.length; i++) {
+        if(objects[i].id === id) {
+          objects[i].move(x, y);
+        }
+      }
     }
 
     function randomNum(max) {
@@ -85,7 +106,8 @@
       touches: [],
       val: 0.0,
 
-      initiateTouch: function(e) {
+      initiateTouch: function(id) {
+        this.touches.push(id);
         if (this.touchState === 0) {
           this.touchState = 1;
           this.stateTime = 0.0;
@@ -95,7 +117,7 @@
       update: function(deltaTime) {
         if (this.touchState > 0) {
           this.stateTime += deltaTime;
-          this.val = this.stateTime/100000;
+          this.val = this.stateTime/80000;
 
           if (this.touchState == 1) {
             if (backgroundMovement.playbackRate + this.val > 2) {
@@ -126,6 +148,8 @@
             }
             if (backgroundSound.playbackRate - this.val < 1) {
               backgroundSound.playbackRate = 1;
+              this.touchState = 0;
+              touchSound.volume = 0;
             } else {
               backgroundSound.playbackRate -= this.val;
             }
@@ -134,17 +158,17 @@
             } else {
               backgroundSound.volume -= this.val;
             }
-            if (touchSound.playbackRate - this.val <= 0) {
-              touchSound.playbackRate = 0;
-              this.touchState = 0;
+            if (touchSound.volume - this.val <= 0) {
+              touchSound.volume = 0;
             } else {
-              touchSound.playbackRate -= this.val;
+              touchSound.volume -= this.val;
             }
           }
         }
       },
 
-      endTouch: function() {
+      endTouch: function(id) {
+        this.touches.erase(id);
         if ( this.touches.length === 0) {
           this.touchState = 2;
           this.stateTime = 0.0;
@@ -210,28 +234,36 @@
       e.preventDefault(); e.stopPropagation();
       //console.log(e.type);
     }
-    $(document).on('touchstart touch touchend touchmove', initEvent);
+    $(document).on('click touchstart touch touchend touchmove', initEvent);
 
-    $canvasFront.on('click touchstart' , function(e) {
-      touchManager.initiateTouch(e);
-      createDynamicEntity(e.clientX, e.clientY);
+    $canvasFront.on('touchstart' , function(e) {
+      e.preventDefault();
+      var touchList = e.originalEvent.changedTouches;
+      for(var i = 0; i < touchList.length; i++)
+      {
+        touchManager.initiateTouch(touchList[i].identifier);
+        createDynamicEntity(touchList[i].screenX, touchList[i].screenY, touchList[i].identifier);
+      }
     });
     
     $canvasFront.on('touchend' , function(e) {
-      touchManager.endTouch();
+      e.preventDefault();
+      var touchList = e.originalEvent.changedTouches;
+      for(var i = 0; i < touchList.length; i++)
+      {
+        touchManager.endTouch(touchList[i].identifier);
+        destroyDynamicEntity(touchList[i].identifier);
+      }
     });
     
-    /*$canvas.on('touchmove' , function(e) {
-      initEvent(e);
-      for(var i = 0; i < e.originalEvent.touches.length; i++) {
-        var object = new Circle();
-        object.x = e.originalEvent.touches[i].pageX;
-        object.y = e.originalEvent.touches[i].pageY;
-        object.color = "rgba(0,0,0,";
-        object.size = randomSize();
-        objects.push(object);
+    $canvasFront.on('touchmove' , function(e) {
+      e.preventDefault();
+      var touchList = e.originalEvent.changedTouches;
+      for(var i = 0; i < touchList.length; i++)
+      {
+        moveDynamicEntity(touchList[i].screenX, touchList[i].screenY, touchList[i].identifier);
       }
-    });*/
+    });
 
 
 
