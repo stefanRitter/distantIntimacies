@@ -69,8 +69,9 @@
           this.alpha = this.stateTime/this.duration;
         } else {
           // decrease alpha
-          this.alpha = this.duration/this.stateTime;
+          this.alpha = (this.duration-(this.stateTime-this.duration))/this.duration;
         }
+        backgroundSound.volume = this.alpha*0.5;
 
         // Fill canvas with temperament
         context.fillStyle = this.gradient;
@@ -111,7 +112,7 @@
       canvas.height = $(window).height();
     }
     $(window).resize(resize);
-    backgroundSound.volume = 0.05;
+    backgroundSound.volume = 0;//0.05;
     resize();
     
 
