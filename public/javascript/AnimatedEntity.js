@@ -64,11 +64,11 @@ var AnimatedEntity = EntityClass.extend({
           this.kill();
         }
       } else {
-        if (this.alpha < 0.8) {
+        if (this.alpha < 0.6) {
           this.alpha += 1/60;
         }
-        if (this.alpha > 0.8) {
-          this.alpha = 0.8;
+        if (this.alpha > 0.6) {
+          this.alpha = 0.6;
         }
       }
     }

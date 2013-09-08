@@ -28,8 +28,12 @@
     }
     $(window).resize(resize);
     window.gContext = document.getElementsByTagName('canvas')[1].getContext('2d');
-    loadAssets(['sprite.png', 'sprite.json'], function(){
-      setupSprites();
+    window.gContext.globalCompositeOperation = 'darker';
+    context.globalCompositeOperation = 'darker';
+    loadAssets(['blob02.png', 'blob02.json'], function() {
+      loadAssets(['blob01.png', 'blob01.json'], function() {
+        setupSprites(createRandomEntities);
+      });
     });
     touchSound.volume = 0.0;
     backgroundSound.volume = 0.0;
@@ -38,10 +42,18 @@
 
 
     // helper functions
-    function setupSprites() {
+    function setupSprites(callback) {
       var sprite = new SpriteSheetClass();
-      sprite.setAsset('sprite.png', gCachedAssets['sprite.png']);
-      sprite.parseAtlasDefinition(gCachedAssets['sprite.json']);
+      sprite.setAsset('blob01.png', gCachedAssets['blob01.png']);
+      sprite.parseAtlasDefinition(gCachedAssets['blob01.json']);
+      
+      var sprite2 = new SpriteSheetClass();
+      sprite2.setAsset('blob02.png', gCachedAssets['blob02.png']);
+      sprite2.parseAtlasDefinition(gCachedAssets['blob02.json']);
+      
+      if (callback) {
+        callback();
+      }
     }
     function spawnEntity(typename, id) {
       for (var i = 0; i < objects.length; i++) {
@@ -54,20 +66,34 @@
       return ent;
     }
 
-    function createDynamicEntity(x, y, id) {
-      var touchId = id || 0,
-          entity = spawnEntity('AnimatedEntity', id),
+    function createDynamicEntity(x, y, id, _scale, _type) {
+      var touchId = id || 20,
+          entity = spawnEntity('AnimatedEntity', touchId),
           frames = [],
-          scale = randomRange(2,4);
+          scale = _scale || randomRange(3,5),
+          oneOrTwo = _type || randomRange(1,2);
 
-      for(var h = 0; h < 5; h++) {
-        for(var z = 0; z < 10; z++) {
-          for(var e = 0; e < 10; e++) {
-            frames.push('blob01black_00'+h+z+e+'.tga');
+      if (oneOrTwo === 1) {
+        for(var h = 0; h < 5; h++) {
+          for(var z = 0; z < 10; z++) {
+            for(var e = 0; e < 10; e++) {
+              frames.push('blob01black_00'+h+z+e+'.tga');
+            }
           }
         }
+        entity.create(x, y, 238*scale, 190*scale, frames, 17000, touchId, true, randomRange(150, 800));
+      } else {
+        for(var h2 = 0; h2 <= 3; h2++) {
+          for(var z2 = 0; z2 < 10; z2++) {
+            for(var e2 = 0; e2 < 10; e2++) {
+              if (h2 <= 3 && z2 <= 8 && e2 <= 9) {
+                frames.push('blob02_00'+h2+z2+e2+'.tga');
+              }
+            }
+          }
+        }
+        entity.create(x, y, 106*scale, 185*scale, frames, 17000, touchId, true, randomRange(100, 600));
       }
-      entity.create(x, y, 238*scale, 190*scale, frames, 17000, touchId, true, randomRange(150, 1000));
     }
 
     function destroyDynamicEntity(id) {
@@ -86,6 +112,12 @@
       }
     }
 
+    function createRandomEntities() {
+      setTimeout( function() {
+        createDynamicEntity(randomNum(canvas.width), randomNum(canvas.height), 30, randomRange(3,4));
+      }, 1500);
+    }
+
     function randomNum(max) {
       return Math.floor((Math.random()*max)+1);
     }
@@ -96,9 +128,9 @@
     }
 
     function randomColor() {
-      var r = Math.floor((Math.random()*255)+1),
-          g = Math.floor((Math.random()*50)+1),
-          b = Math.floor((Math.random()*100)+1);
+      var r = randomRange(80, 255),
+          g = randomRange(20, 50),
+          b = randomRange(20, 100);
       return "rgba(" + r + "," + g + "," + b + ",";
     }
 
@@ -208,8 +240,8 @@
         this.duration = randomRange(10000, 20000);
         this.reactTime = this.duration*2 + randomNum(4000);
         this.gradient = context.createLinearGradient(0,0,canvas.width,canvas.height);
-        this.gradient.addColorStop(0, randomColor()+'0.3)');
-        this.gradient.addColorStop(1, randomColor()+'0.7)');
+        this.gradient.addColorStop(0, randomColor()+'0.6)');
+        this.gradient.addColorStop(1, randomColor()+'1.0)');
         this.alpha = 0.0;
       },
       
@@ -230,10 +262,8 @@
         // Fill canvas with temperament
         context.fillStyle = this.gradient;
         context.globalAlpha = this.alpha;
-        context.globalCompositeOperation = 'darker';
         context.fillRect(0,0,canvas.width,canvas.height);
         context.globalAlpha = 1.0;
-        //context.globalCompositeOperation = 'source-over';
       }
     };
     
@@ -265,7 +295,7 @@
       for(var i = 0; i < touchList.length; i++)
       {
         touchManager.endTouch(touchList[i].identifier);
-        destroyDynamicEntity(touchList[i].identifier);
+        //destroyDynamicEntity(touchList[i].identifier);
       }
     });
     
@@ -290,7 +320,10 @@
           deadObjects.push(objects[i]);
         }
       }
-      for (var j = 0; j < objects.length; j++) {
+      for (var j = 0; j < deadObjects.length; j++) {
+        if (deadObjects[j].id === 30) {
+          createRandomEntities();
+        }
         objects.erase(deadObjects[j]);
       }
       deadObjects = [];
