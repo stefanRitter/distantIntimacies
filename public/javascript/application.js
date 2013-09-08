@@ -70,7 +70,7 @@
       var touchId = id || 20,
           entity = spawnEntity('AnimatedEntity', touchId),
           frames = [],
-          scale = _scale || randomRange(3,5),
+          scale = _scale || randomRange(3,6),
           oneOrTwo = _type || randomRange(1,2);
 
       if (oneOrTwo === 1) {
@@ -149,7 +149,7 @@
 
       initiateTouch: function(id) {
         this.touches.push(id);
-        if (this.touchState === 0) {
+        if (this.touchState === 0 || this.touchState === 2) {
           this.touchState = 1;
           this.stateTime = 0.0;
         }
@@ -327,6 +327,12 @@
         objects.erase(deadObjects[j]);
       }
       deadObjects = [];
+      
+      if (objects.length > 10) {
+        for(var d = 0; d < 6; d++) {
+          objects[d+1].destroy();
+        }
+      }
     }
 
     function render() {
