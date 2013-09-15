@@ -330,7 +330,12 @@
       
       if (objects.length > 10) {
         for(var d = 0; d < 6; d++) {
-          objects[d+1].destroy();
+          objects[d].destroy();
+        }
+      }
+      if (objects.length > 20) {
+        for(var o = 0; o < 20; o++) {
+          objects[o].destroy();
         }
       }
     }
@@ -350,4 +355,5 @@
     }
     window.requestAnimationFrame(render);
   });
+//  setTimeout(function() { window.location = "http://localhost:5000/"}, 15*60000);
 }).call(this);
